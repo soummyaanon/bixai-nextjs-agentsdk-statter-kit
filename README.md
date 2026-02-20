@@ -2,28 +2,28 @@
 
 CLI to scaffold a production-ready Next.js + OpenAI Agents SDK starter app.
 
+---
+
 ## Why this package
 
-This starter is designed for building real agent applications with a clean structure:
+Built for real agent applications with a clean structure:
 
 - Next.js App Router baseline
 - OpenAI Agents SDK integration
 - Tool-first architecture with typed boundaries
-- API route that supports standard JSON and SSE streaming
+- API route with standard JSON and SSE streaming
 - Runtime layer separated from HTTP route handlers
+
+---
 
 ## Requirements
 
-- Node.js 20.9 or newer
+- Node.js `20.9+` — required by Next.js 16.x
 - npm
 
-Why `20.9+`:
-
-- The generated starter uses Next.js `16.x`, which requires Node.js `20.9+`.
+---
 
 ## Quick start
-
-Run without installing:
 
 ```bash
 npx @bixai/create-agent-sdk-starter my-agent-app
@@ -39,39 +39,23 @@ npm install -g @bixai/create-agent-sdk-starter
 create-agent-sdk-starter my-agent-app
 ```
 
-## Install command on npm
-
-On npm, you will see:
-
-```bash
-npm i @bixai/create-agent-sdk-starter
-```
-
-This is npm's default install snippet for this package. It is normal.
+---
 
 ## CLI reference
-
-Command:
 
 ```bash
 create-agent-sdk-starter <project-name>
 ```
 
-Arguments:
+- `project-name` — target directory for the new app
+- Fails if the directory already exists
+- Automatically renames `gitignore` → `.gitignore`
 
-- `project-name`: directory name for your new app
+---
 
-Behavior:
+## Generated structure
 
-- Copies template files into `<project-name>`
-- Renames `gitignore` to `.gitignore`
-- Fails if target directory already exists
-
-## What gets generated
-
-Important generated files and folders:
-
-```text
+```
 my-agent-app/
   app/
     api/agent/route.ts
@@ -83,12 +67,15 @@ my-agent-app/
   package.json
 ```
 
-## Configure the generated app
+---
 
-In the generated project, create `.env.local`:
+## Configure
+
+Create `.env.local` in the generated project:
 
 ```bash
 OPENAI_API_KEY=your_key_here
+
 # Optional
 # OPENAI_MODEL=gpt-5-mini
 # AGENTS_TRACING_DISABLED=true
@@ -97,13 +84,15 @@ OPENAI_API_KEY=your_key_here
 # AGENT_MAX_LOCAL_SESSIONS=200
 ```
 
-Start the generated app:
+Then start the dev server:
 
 ```bash
 npm run dev
 ```
 
-## API quick test (generated app)
+---
+
+## Test the API
 
 Standard request:
 
@@ -123,24 +112,21 @@ curl -N -X POST "http://localhost:3000/api/agent?stream=true" \
 
 See `PRODUCTION_GUIDE.md` in the generated project for auth, rate limiting, persistent sessions, and monitoring.
 
+---
+
 ## Troubleshooting
 
-`npx @bixai/create-agent-sdk-starter` fails on older Node:
+**`npx` fails on older Node** — Upgrade to Node.js `20.9+` and retry.
 
-- Upgrade Node.js to `20.9+` and retry.
+**npm page README is stale** — npm renders the README bundled at publish time. Any update requires a new package version.
 
-npm page README is stale:
-
-- npm renders the README bundled in the published tarball.
-- Any README change needs a new published package version.
-
-macOS cache permission error (`EPERM` under `~/.npm`):
-
-- Fix permissions:
+**macOS `EPERM` under `~/.npm`** — Fix permissions:
 
 ```bash
 sudo chown -R "$(id -u)":"$(id -g)" ~/.npm
 ```
+
+---
 
 ## License
 
