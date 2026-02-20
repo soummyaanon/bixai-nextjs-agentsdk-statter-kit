@@ -1,9 +1,5 @@
 # @bixai/create-agent-sdk-starter
 
-[GitHub Repo](https://github.com/soummyaanon/bixai-nextjs-agentsdk-statter-kit)
-[License: MIT](https://opensource.org/licenses/MIT)
-[Star on GitHub](https://github.com/soummyaanon/bixai-nextjs-agentsdk-statter-kit)
-
 CLI to scaffold a production-ready Next.js + OpenAI Agents SDK starter app.
 
 **Open source** — If this helps you build agent apps, consider giving it a ⭐ [star on GitHub](https://github.com/soummyaanon/bixai-nextjs-agentsdk-statter-kit)!
