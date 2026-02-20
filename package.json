@@ -1,0 +1,51 @@
+{
+  "name": "@bixai/create-agent-sdk-starter",
+  "version": "1.0.3",
+  "description": "BixAI CLI to scaffold a Next.js + OpenAI Agents SDK starter app",
+  "main": "dist/index.js",
+  "bin": {
+    "create-agent-sdk-starter": "dist/index.js"
+  },
+  "files": [
+    "dist",
+    "templates/default",
+    "templates/default/gitignore",
+    "templates/default/.env.local.example"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "dev": "ts-node src/index.ts",
+    "test": "echo \"No tests configured\""
+  },
+  "keywords": [
+    "cli",
+    "scaffold",
+    "nextjs",
+    "openai",
+    "agents"
+  ],
+  "engines": {
+    "node": ">=20.9.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/soummyaanon/Developer.git",
+    "directory": "create-agent-app"
+  },
+  "author": "",
+  "license": "ISC",
+  "publishConfig": {
+    "access": "public"
+  },
+  "type": "commonjs",
+  "dependencies": {
+    "commander": "^14.0.3",
+    "fs-extra": "^11.3.3",
+    "picocolors": "^1.1.1"
+  },
+  "devDependencies": {
+    "@types/node": "^25.3.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3"
+  }
+}
