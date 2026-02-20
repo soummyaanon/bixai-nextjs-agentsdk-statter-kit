@@ -29,7 +29,7 @@ Built for real agent applications with a clean structure:
 npx @bixai/create-agent-sdk-starter my-agent-app
 cd my-agent-app
 npm install
-cp .env.example .env.local   # then add your OPENAI_API_KEY
+cp .env.local.example .env.local   # then add your OPENAI_API_KEY
 npm run dev
 ```
 

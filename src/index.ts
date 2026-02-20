@@ -43,7 +43,7 @@ program
     console.log("\nNext steps:");
     console.log(`  cd ${projectName}`);
     console.log("  npm install");
-    console.log("  cp .env.example .env.local  # add your OPENAI_API_KEY");
+    console.log("  cp .env.local.example .env.local  # add your OPENAI_API_KEY");
     console.log("  npm run dev");
   });
 
