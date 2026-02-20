@@ -1,8 +1,8 @@
 # @bixai/create-agent-sdk-starter
 
-[![GitHub Repo](https://img.shields.io/badge/GitHub-Repository-181717?style=flat-square&logo=github)](https://github.com/soummyaanon/bixai-nextjs-agentsdk-statter-kit)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](https://opensource.org/licenses/MIT)
-[![Star on GitHub](https://img.shields.io/github/stars/soummyaanon/bixai-nextjs-agentsdk-statter-kit?style=flat-square&logo=github)](https://github.com/soummyaanon/bixai-nextjs-agentsdk-statter-kit)
+[GitHub Repo](https://github.com/soummyaanon/bixai-nextjs-agentsdk-statter-kit)
+[License: MIT](https://opensource.org/licenses/MIT)
+[Star on GitHub](https://github.com/soummyaanon/bixai-nextjs-agentsdk-statter-kit)
 
 CLI to scaffold a production-ready Next.js + OpenAI Agents SDK starter app.
 
@@ -78,7 +78,7 @@ my-agent-app/
 
 ## Configure
 
-Create `.env.local` in the generated project:
+Create `.env.local` in the generated project :
 
 ```bash
 OPENAI_API_KEY=your_key_here
@@ -123,7 +123,7 @@ See `PRODUCTION_GUIDE.md` in the generated project for auth, rate limiting, pers
 
 ## Troubleshooting
 
-**`npx` fails on older Node** — Upgrade to Node.js `20.9+` and retry.
+`**npx` fails on older Node** — Upgrade to Node.js `20.9+` and retry.
 
 **npm page README is stale** — npm renders the README bundled at publish time. Any update requires a new package version.
 
