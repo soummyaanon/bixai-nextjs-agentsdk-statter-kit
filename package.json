@@ -1,6 +1,6 @@
 {
   "name": "@bixai/create-agent-sdk-starter",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "BixAI CLI to scaffold a Next.js + OpenAI Agents SDK starter app",
   "main": "dist/index.js",
   "bin": {
@@ -29,8 +29,11 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/soummyaanon/Developer.git",
-    "directory": "create-agent-app"
+    "url": "git+https://github.com/soummyaanon/bixai-nextjs-agentsdk-statter-kit.git"
+  },
+  "homepage": "https://github.com/soummyaanon/bixai-nextjs-agentsdk-statter-kit#readme",
+  "bugs": {
+    "url": "https://github.com/soummyaanon/bixai-nextjs-agentsdk-statter-kit/issues"
   },
   "author": "",
   "license": "MIT",
