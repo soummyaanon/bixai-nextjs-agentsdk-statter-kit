@@ -3,6 +3,16 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { MessageBubble } from "./MessageBubble";
 import { ChatInput } from "./ChatInput";
+import { Sidebar } from "./Sidebar";
+import {
+  getConversations,
+  saveConversation,
+  deleteConversation,
+  getMessages,
+  saveMessages,
+  type ConversationMeta,
+  type Message,
+} from "@/lib/storage";
 
 type ToolCall = {
   callId: string;
@@ -10,14 +20,6 @@ type ToolCall = {
   arguments: Record<string, unknown>;
   output?: unknown;
   status: "calling" | "done";
-};
-
-type Message = {
-  id: string;
-  role: "user" | "assistant";
-  content: string;
-  toolCalls: ToolCall[];
-  isStreaming: boolean;
 };
 
 function generateId() {
@@ -48,16 +50,61 @@ function parseSSE(chunk: string): { event: string; data: string }[] {
 export function Chat() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isStreaming, setIsStreaming] = useState(false);
-  const [conversationId] = useState(() => `chat-${generateId()}`);
+  const [conversationId, setConversationId] = useState(() => `chat-${generateId()}`);
+  const [conversations, setConversations] = useState<ConversationMeta[]>([]);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
   const abortRef = useRef<AbortController | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
+  // Load conversations from localStorage on mount
+  useEffect(() => {
+    setConversations(getConversations());
+  }, []);
+
+  // Auto-scroll on new messages
   useEffect(() => {
     const el = scrollRef.current;
     if (el) {
       el.scrollTop = el.scrollHeight;
     }
   }, [messages]);
+
+  // Persist messages when they change (debounced by streaming state)
+  useEffect(() => {
+    if (!isStreaming && messages.length > 0) {
+      saveMessages(conversationId, messages);
+    }
+  }, [messages, isStreaming, conversationId]);
+
+  const handleNewChat = useCallback(() => {
+    const newId = `chat-${generateId()}`;
+    setConversationId(newId);
+    setMessages([]);
+  }, []);
+
+  const handleSelectChat = useCallback((id: string) => {
+    const loaded = getMessages(id);
+    setConversationId(id);
+    setMessages(loaded);
+  }, []);
+
+  const handleDeleteChat = useCallback(
+    (id: string) => {
+      deleteConversation(id);
+      setConversations(getConversations());
+      if (id === conversationId) {
+        const remaining = getConversations();
+        if (remaining.length > 0) {
+          const first = remaining[0];
+          setConversationId(first.id);
+          setMessages(getMessages(first.id));
+        } else {
+          handleNewChat();
+        }
+      }
+    },
+    [conversationId, handleNewChat]
+  );
 
   const handleSend = useCallback(
     async (text: string) => {
@@ -80,6 +127,18 @@ export function Chat() {
 
       setMessages((prev) => [...prev, userMsg, assistantMsg]);
       setIsStreaming(true);
+
+      // Save/update conversation meta
+      const now = Date.now();
+      const existing = conversations.find((c) => c.id === conversationId);
+      const title = existing?.title || text.slice(0, 40);
+      saveConversation({
+        id: conversationId,
+        title,
+        createdAt: existing?.createdAt || now,
+        updatedAt: now,
+      });
+      setConversations(getConversations());
 
       const controller = new AbortController();
       abortRef.current = controller;
@@ -115,7 +174,6 @@ export function Chat() {
 
           buffer += decoder.decode(value, { stream: true });
 
-          // Process complete SSE blocks (split by double newline)
           const lastDoubleNewline = buffer.lastIndexOf("\n\n");
           if (lastDoubleNewline === -1) continue;
 
@@ -210,7 +268,6 @@ export function Chat() {
           }
         }
 
-        // Stream ended
         setMessages((prev) =>
           prev.map((m) =>
             m.id === assistantId ? { ...m, isStreaming: false } : m
@@ -241,9 +298,15 @@ export function Chat() {
       } finally {
         setIsStreaming(false);
         abortRef.current = null;
+        // Update timestamp
+        const meta = getConversations().find((c) => c.id === conversationId);
+        if (meta) {
+          saveConversation({ ...meta, updatedAt: Date.now() });
+          setConversations(getConversations());
+        }
       }
     },
-    [conversationId]
+    [conversationId, conversations]
   );
 
   const handleStop = useCallback(() => {
@@ -251,49 +314,111 @@ export function Chat() {
   }, []);
 
   return (
-    <div className="flex h-screen flex-col bg-[#09090B]">
-      {/* Header */}
-      <header className="border-b border-zinc-800/50 px-4 py-3">
-        <div className="mx-auto flex max-w-3xl items-center gap-2">
-          <div className="h-2 w-2 rounded-full bg-emerald-500" />
-          <span className="font-mono text-xs font-medium tracking-wider text-zinc-400">
-            AGENT
-          </span>
-        </div>
-      </header>
+    <div className="ambient-bg flex h-screen">
+      {/* Sidebar */}
+      {sidebarOpen && (
+        <Sidebar
+          conversations={conversations}
+          activeId={conversationId}
+          onNewChat={handleNewChat}
+          onSelectChat={handleSelectChat}
+          onDeleteChat={handleDeleteChat}
+        />
+      )}
 
-      {/* Messages */}
-      <div
-        ref={scrollRef}
-        className="flex-1 overflow-y-auto px-4 py-6 custom-scrollbar"
-      >
-        <div className="mx-auto flex max-w-3xl flex-col gap-4">
-          {messages.length === 0 && (
-            <div className="flex flex-col items-center justify-center py-32 text-center">
-              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl border border-zinc-800 bg-zinc-900">
-                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" className="text-emerald-500">
-                  <path d="M10 2L2 10l8 8 8-8-8-8z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round"/>
-                  <circle cx="10" cy="10" r="2" fill="currentColor"/>
-                </svg>
+      {/* Main chat area */}
+      <div className="flex flex-1 flex-col">
+        {/* Header */}
+        <header
+          className="relative z-10 flex items-center px-5 py-4"
+          style={{ borderBottom: "1px solid var(--border-subtle)" }}
+        >
+          <button
+            type="button"
+            onClick={() => setSidebarOpen(!sidebarOpen)}
+            className="mr-3 flex items-center justify-center rounded-lg p-1.5 transition-colors duration-150"
+            style={{ color: "var(--text-secondary)" }}
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+              <path d="M3 12h18M3 6h18M3 18h18" />
+            </svg>
+          </button>
+
+          <div className="flex items-center gap-3">
+            <div
+              className="status-pulse h-2 w-2 rounded-full"
+              style={{ background: "var(--copper-400)" }}
+            />
+            <span
+              className="text-[11px] font-semibold uppercase tracking-[0.2em]"
+              style={{
+                fontFamily: "var(--font-jetbrains-mono), monospace",
+                color: "var(--text-secondary)",
+              }}
+            >
+              Agent
+            </span>
+          </div>
+
+          <div className="ml-auto flex items-center gap-2">
+            <div
+              className="h-1 w-1 rounded-full"
+              style={{ background: "var(--text-muted)" }}
+            />
+            <span
+              className="text-[10px] uppercase tracking-widest"
+              style={{
+                fontFamily: "var(--font-jetbrains-mono), monospace",
+                color: "var(--text-muted)",
+              }}
+            >
+              {messages.length > 0 ? `${messages.length} msgs` : "Ready"}
+            </span>
+          </div>
+        </header>
+
+        {/* Messages */}
+        <div
+          ref={scrollRef}
+          className="custom-scrollbar relative z-10 flex-1 overflow-y-auto px-5 py-8"
+        >
+          <div className="mx-auto flex max-w-2xl flex-col gap-5">
+            {messages.length === 0 && (
+              <div className="flex flex-col items-center justify-center py-28 text-center">
+                <h2
+                  className="mb-3 text-2xl font-bold tracking-tight"
+                  style={{
+                    fontFamily: "var(--font-syne), system-ui",
+                    color: "var(--text-primary)",
+                  }}
+                >
+                  What can I help with?
+                </h2>
+                <p
+                  className="max-w-xs text-sm leading-relaxed"
+                  style={{ color: "var(--text-tertiary)" }}
+                >
+                  Send a message to begin. I can reason, calculate, check the
+                  weather, and work through problems step by step.
+                </p>
               </div>
-              <p className="text-sm text-zinc-500">
-                Send a message to start a conversation
-              </p>
-            </div>
-          )}
+            )}
 
-          {messages.map((msg) => (
-            <MessageBubble key={msg.id} message={msg} />
-          ))}
+            {messages.map((msg, i) => (
+              <div key={msg.id} className="message-enter" style={{ animationDelay: `${Math.min(i * 0.03, 0.15)}s` }}>
+                <MessageBubble message={msg} />
+              </div>
+            ))}
+          </div>
         </div>
-      </div>
 
-      {/* Input */}
-      <ChatInput
-        onSend={handleSend}
-        onStop={handleStop}
-        isStreaming={isStreaming}
-      />
+        {/* Input */}
+        <ChatInput
+          onSend={handleSend}
+          onStop={handleStop}
+          isStreaming={isStreaming}
+        />
+      </div>
     </div>
   );
 }

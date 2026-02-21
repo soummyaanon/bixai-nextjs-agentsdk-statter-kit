@@ -2,6 +2,8 @@
 
 This guide covers what to add on top of the template before deploying to real users. The template is intentionally unopinionated about these choices — pick what fits your stack.
 
+> Built with [bixai.dev](https://bixai.dev)
+
 ---
 
 ## Authentication
@@ -127,9 +129,122 @@ if (!success) {
 
 ---
 
+## Chat History Persistence
+
+The template stores chat history in **localStorage** (client-side, per-browser, ~5MB limit). This is fine for demos and development but not for production. For production, swap the storage layer to a database.
+
+### The Interface
+
+The template uses `lib/storage.ts` with these functions:
+
+```ts
+getConversations(): ConversationMeta[]
+saveConversation(meta: ConversationMeta): void
+deleteConversation(id: string): void
+getMessages(conversationId: string): Message[]
+saveMessages(conversationId: string, messages: Message[]): void
+```
+
+To use your own database, replace these functions with API calls to your backend. The data shapes stay the same:
+
+```ts
+type ConversationMeta = {
+  id: string;        // "chat-xxxxxxxx"
+  title: string;     // first user message, truncated
+  createdAt: number; // timestamp
+  updatedAt: number; // timestamp
+};
+
+type Message = {
+  id: string;
+  role: "user" | "assistant";
+  content: string;
+  toolCalls: ToolCall[];
+  isStreaming: boolean; // always false when persisted
+};
+```
+
+### Option 1: PostgreSQL (recommended for most apps)
+
+Create two tables:
+
+```sql
+CREATE TABLE conversations (
+  id          TEXT PRIMARY KEY,
+  user_id     TEXT NOT NULL,
+  title       TEXT NOT NULL,
+  created_at  TIMESTAMPTZ DEFAULT now(),
+  updated_at  TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE TABLE messages (
+  id              TEXT PRIMARY KEY,
+  conversation_id TEXT NOT NULL REFERENCES conversations(id) ON DELETE CASCADE,
+  role            TEXT NOT NULL,
+  content         TEXT NOT NULL DEFAULT '',
+  tool_calls      JSONB DEFAULT '[]',
+  created_at      TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE INDEX idx_messages_conversation ON messages(conversation_id);
+CREATE INDEX idx_conversations_user ON conversations(user_id);
+```
+
+Then replace `lib/storage.ts` with API route calls:
+
+```ts
+// lib/storage.ts — production version
+export async function getConversations(): Promise<ConversationMeta[]> {
+  const res = await fetch("/api/conversations");
+  return res.json();
+}
+
+export async function saveMessages(conversationId: string, messages: Message[]): Promise<void> {
+  await fetch(`/api/conversations/${conversationId}/messages`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ messages }),
+  });
+}
+
+// ... same pattern for other functions
+```
+
+Works with Prisma, Drizzle, or raw queries.
+
+### Option 2: Redis
+
+Good for ephemeral history that auto-expires.
+
+```ts
+// Store conversations list per user
+await redis.zadd(`user:${userId}:conversations`, updatedAt, JSON.stringify(meta));
+
+// Store messages per conversation
+await redis.set(`chat:${conversationId}`, JSON.stringify(messages));
+await redis.expire(`chat:${conversationId}`, 60 * 60 * 24 * 30); // 30 days
+```
+
+### Option 3: SQLite
+
+Zero-infra, file-based. Good for single-server or self-hosted deployments.
+
+```bash
+npm install better-sqlite3
+npm install -D @types/better-sqlite3
+```
+
+Same table schema as PostgreSQL above, just swap `JSONB` for `JSON` and `TIMESTAMPTZ` for `INTEGER`.
+
+### Option 4: Supabase / Firebase
+
+Both offer real-time sync out of the box. Use their client SDKs directly in `lib/storage.ts` — the function signatures stay the same, you just change the implementation body.
+
+---
+
 ## Persistent Sessions
 
-The template uses in-memory sessions (`MemorySession` wrapped by `FilteredMemorySession`). These reset on every server restart. For production, implement the `Session` interface with a real store.
+The template uses in-memory sessions (`MemorySession`) for the agent runtime. These reset on every server restart. For production, implement the `Session` interface with a real store.
 
 ### The Interface
 
@@ -191,10 +306,6 @@ Set TTL with `EXPIRE` to auto-clean stale sessions.
 ### PostgreSQL / MySQL
 
 Same table design as SQLite. Use JSONB for the `item` column in Postgres. Works with Prisma, Drizzle, or raw queries.
-
-### Important: Filter Reasoning Items
-
-**Regardless of storage backend**, filter out items where `type === "reasoning"` in your `getItems()` implementation. Models like `gpt-5-mini` produce reasoning items that the OpenAI API rejects when sent back without their required following item. See `FilteredMemorySession` in the template for the pattern.
 
 ---
 
@@ -276,10 +387,10 @@ export function GET() {
 
 - [ ] Auth middleware wired into `/api/agent` route
 - [ ] Rate limiting enabled per user
-- [ ] Sessions backed by persistent storage
+- [ ] Chat history backed by a database (not localStorage)
+- [ ] Agent sessions backed by persistent storage
 - [ ] `OPENAI_API_KEY` set in production environment (not `.env.local`)
 - [ ] `AGENTS_TRACE_INCLUDE_SENSITIVE_DATA` is `false` in production
 - [ ] Error tracking service connected
 - [ ] Health check endpoint responding
 - [ ] CORS configured if frontend is on a different origin
-- [ ] `reasoning` items filtered from session history

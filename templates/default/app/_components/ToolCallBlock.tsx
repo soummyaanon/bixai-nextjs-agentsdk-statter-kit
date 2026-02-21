@@ -14,40 +14,90 @@ export function ToolCallBlock({ toolCall }: { toolCall: ToolCall }) {
   const [collapsed, setCollapsed] = useState(false);
 
   return (
-    <div className="tool-call-block my-2 overflow-hidden rounded-lg border border-zinc-800 bg-zinc-900/80">
+    <div
+      className="tool-call-block my-2 overflow-hidden rounded-lg border"
+      style={{
+        borderColor: toolCall.status === "calling" ? "var(--copper-700)" : "var(--border-default)",
+        background: "var(--bg-secondary)",
+      }}
+    >
       <button
         type="button"
         onClick={() => setCollapsed(!collapsed)}
-        className="flex w-full items-center gap-2 px-3 py-2 text-left text-xs font-medium transition-colors hover:bg-zinc-800/50"
+        className="flex w-full items-center gap-2.5 px-3 py-2 text-left text-xs transition-colors"
+        style={{ fontFamily: "var(--font-jetbrains-mono), monospace" }}
       >
         <span
-          className={`inline-block h-2 w-2 rounded-full ${
-            toolCall.status === "calling"
-              ? "animate-pulse bg-amber-500"
-              : "bg-emerald-500"
+          className={`inline-block h-1.5 w-1.5 rounded-full ${
+            toolCall.status === "calling" ? "status-pulse" : ""
           }`}
+          style={{
+            background:
+              toolCall.status === "calling"
+                ? "var(--copper-400)"
+                : "var(--copper-600)",
+          }}
         />
-        <span className="font-mono text-zinc-300">{toolCall.name}</span>
-        <span className="ml-auto text-zinc-600">
-          {collapsed ? "+" : "\u2212"}
+        <span
+          className="text-[11px] font-medium"
+          style={{ color: "var(--text-secondary)" }}
+        >
+          {toolCall.name}
+        </span>
+        <span
+          className="ml-auto text-[10px] uppercase tracking-wider"
+          style={{ color: "var(--text-muted)" }}
+        >
+          {toolCall.status === "calling" ? "running" : collapsed ? "show" : "hide"}
         </span>
       </button>
 
       {!collapsed && (
-        <div className="border-t border-zinc-800 px-3 py-2 text-xs">
-          <div className="mb-1 font-mono text-[10px] uppercase tracking-wider text-zinc-500">
-            Arguments
+        <div
+          className="px-3 py-2.5 text-xs"
+          style={{ borderTop: "1px solid var(--border-subtle)" }}
+        >
+          <div
+            className="mb-1.5 text-[9px] font-medium uppercase tracking-[0.2em]"
+            style={{
+              fontFamily: "var(--font-jetbrains-mono), monospace",
+              color: "var(--text-muted)",
+            }}
+          >
+            Input
           </div>
-          <pre className="overflow-x-auto whitespace-pre-wrap break-all rounded bg-zinc-950 p-2 font-mono text-emerald-400/90">
+          <pre
+            className="overflow-x-auto whitespace-pre-wrap break-all rounded-md p-2.5 text-[11px] leading-relaxed"
+            style={{
+              fontFamily: "var(--font-jetbrains-mono), monospace",
+              background: "var(--bg-primary)",
+              color: "var(--copper-200)",
+              border: "1px solid var(--border-subtle)",
+            }}
+          >
             {JSON.stringify(toolCall.arguments, null, 2)}
           </pre>
 
           {toolCall.output !== undefined && (
             <>
-              <div className="mb-1 mt-2 font-mono text-[10px] uppercase tracking-wider text-zinc-500">
-                Result
+              <div
+                className="mb-1.5 mt-3 text-[9px] font-medium uppercase tracking-[0.2em]"
+                style={{
+                  fontFamily: "var(--font-jetbrains-mono), monospace",
+                  color: "var(--text-muted)",
+                }}
+              >
+                Output
               </div>
-              <pre className="overflow-x-auto whitespace-pre-wrap break-all rounded bg-zinc-950 p-2 font-mono text-emerald-300">
+              <pre
+                className="overflow-x-auto whitespace-pre-wrap break-all rounded-md p-2.5 text-[11px] leading-relaxed"
+                style={{
+                  fontFamily: "var(--font-jetbrains-mono), monospace",
+                  background: "var(--bg-primary)",
+                  color: "var(--copper-100)",
+                  border: "1px solid var(--border-subtle)",
+                }}
+              >
                 {typeof toolCall.output === "string"
                   ? toolCall.output
                   : JSON.stringify(toolCall.output, null, 2)}

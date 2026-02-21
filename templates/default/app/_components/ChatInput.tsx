@@ -36,38 +36,81 @@ export function ChatInput({ onSend, onStop, isStreaming }: ChatInputProps) {
   };
 
   return (
-    <div className="border-t border-zinc-800 bg-zinc-950/80 px-4 py-3 backdrop-blur">
-      <div className="mx-auto flex max-w-3xl items-end gap-2">
-        <textarea
-          ref={textareaRef}
-          rows={1}
-          placeholder="Send a message..."
-          className="flex-1 resize-none rounded-xl border border-zinc-800 bg-zinc-900 px-4 py-2.5 text-sm text-zinc-100 placeholder-zinc-600 outline-none transition-colors focus:border-zinc-700"
-          onKeyDown={handleKeyDown}
-          onInput={handleInput}
-          disabled={isStreaming}
-        />
+    <div className="relative z-10 px-5 py-4">
+      <div className="mx-auto flex max-w-2xl items-end gap-3">
+        <div
+          className="flex flex-1 items-end rounded-xl border transition-all duration-300"
+          style={{
+            borderColor: "var(--border-default)",
+            background: "var(--bg-tertiary)",
+          }}
+        >
+          <textarea
+            ref={textareaRef}
+            rows={1}
+            placeholder="Message..."
+            className="flex-1 resize-none bg-transparent px-4 py-3 text-sm outline-none placeholder:opacity-40"
+            style={{
+              fontFamily: "var(--font-syne), system-ui",
+              color: "var(--text-primary)",
+            }}
+            onKeyDown={handleKeyDown}
+            onInput={handleInput}
+            disabled={isStreaming}
+          />
+        </div>
+
         {isStreaming ? (
           <button
             type="button"
             onClick={onStop}
-            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-red-600/80 text-white transition-colors hover:bg-red-600"
+            className="group flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border transition-all duration-200 hover:scale-105 active:scale-95"
+            style={{
+              borderColor: "#442222",
+              background: "linear-gradient(135deg, #2a1010 0%, #1a0808 100%)",
+            }}
           >
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor">
-              <rect width="14" height="14" rx="2" />
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="#cc4444">
+              <rect width="12" height="12" rx="2" />
             </svg>
           </button>
         ) : (
           <button
             type="button"
             onClick={handleSend}
-            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-600 text-white transition-colors hover:bg-emerald-500"
+            className="group flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border transition-all duration-200 hover:scale-105 active:scale-95"
+            style={{
+              borderColor: "var(--copper-700)",
+              background: "linear-gradient(135deg, var(--copper-700) 0%, var(--copper-600) 100%)",
+            }}
           >
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M14 2L2 8.5l4.5 2L10 6l-3.5 4.5L9 14z" />
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="var(--copper-100)"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="transition-transform duration-200 group-hover:-translate-y-0.5"
+            >
+              <path d="M12 19V5M5 12l7-7 7 7" />
             </svg>
           </button>
         )}
+      </div>
+
+      <div className="mx-auto mt-2 max-w-2xl">
+        <p
+          className="text-center text-[10px] tracking-wider"
+          style={{
+            fontFamily: "var(--font-jetbrains-mono), monospace",
+            color: "var(--text-muted)",
+          }}
+        >
+          Enter to send &middot; Shift+Enter for new line
+        </p>
       </div>
     </div>
   );

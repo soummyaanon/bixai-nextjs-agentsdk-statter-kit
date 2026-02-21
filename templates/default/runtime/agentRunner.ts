@@ -127,9 +127,7 @@ class FilteredMemorySession implements Session {
   }
 
   async getItems(limit?: number) {
-    const items = await this.inner.getItems(limit);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return items.filter((item: any) => item.type !== "reasoning");
+    return this.inner.getItems(limit);
   }
 
   addItems(items: Parameters<Session["addItems"]>[0]) {
