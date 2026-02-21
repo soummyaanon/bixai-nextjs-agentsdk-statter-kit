@@ -35,6 +35,32 @@ cp .env.local.example .env.local   # then add your OPENAI_API_KEY
 npm run dev
 ```
 
+## Create a new app
+
+Using npm:
+
+```bash
+npx @bixai/create-agent-sdk-starter my-app
+```
+
+Using pnpm:
+
+```bash
+pnpm dlx @bixai/create-agent-sdk-starter my-app
+```
+
+Using yarn:
+
+```bash
+yarn dlx @bixai/create-agent-sdk-starter my-app
+```
+
+Using bun:
+
+```bash
+bunx @bixai/create-agent-sdk-starter my-app
+```
+
 Or install globally:
 
 ```bash

@@ -4,16 +4,18 @@
   "description": "BixAI CLI to scaffold a Next.js + OpenAI Agents SDK starter app",
   "main": "dist/index.js",
   "bin": {
-    "create-agent-sdk-starter": "dist/index.js"
+    "create-agent-sdk-starter": "./dist/index.js"
   },
   "files": [
     "dist",
-    "templates/default",
-    "templates/default/gitignore",
-    "templates/default/.env.local.example"
+    "templates",
+    "README.md",
+    "LICENSE"
   ],
   "scripts": {
     "build": "tsc",
+    "postbuild": "node -e \"require('node:fs').chmodSync('dist/index.js', 0o755)\"",
+    "prepublishOnly": "npm run build",
     "dev": "ts-node src/index.ts",
     "test": "echo \"No tests configured\""
   },
@@ -25,7 +27,7 @@
     "agents"
   ],
   "engines": {
-    "node": ">=20.9.0"
+    "node": ">=20.9"
   },
   "repository": {
     "type": "git",

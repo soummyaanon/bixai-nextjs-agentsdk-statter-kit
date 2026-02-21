@@ -47,7 +47,7 @@ program
     console.log("  npm run dev");
   });
 
-program.parseAsync().catch((error) => {
+program.parseAsync(process.argv).catch((error) => {
   console.error(pc.red(error instanceof Error ? error.message : String(error)));
   process.exit(1);
 });
