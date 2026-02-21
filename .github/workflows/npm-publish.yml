@@ -50,6 +50,19 @@ jobs:
             echo "Version not found. Publishing."
           fi
 
+      - name: Verify npm auth
+        if: steps.exists.outputs.publish == 'true'
+        run: |
+          if [ -z "$NODE_AUTH_TOKEN" ]; then
+            echo "NPM_TOKEN is missing. Set it in GitHub repo secrets."
+            exit 1
+          fi
+          npm whoami
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
       - name: Publish package
         if: steps.exists.outputs.publish == 'true'
         run: npm publish --access public --provenance
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
