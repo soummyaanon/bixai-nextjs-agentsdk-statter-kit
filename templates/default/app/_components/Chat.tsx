@@ -379,7 +379,19 @@ export function Chat() {
         >
           <div className="mx-auto flex max-w-2xl flex-col gap-5">
             {messages.length === 0 && (
-              <div className="flex flex-col items-center justify-center py-28 text-center">
+              <div className="relative flex flex-col items-center justify-center py-28 text-center">
+                <div
+                  aria-hidden
+                  className="mb-3 select-none text-[clamp(2.5rem,10vw,4.8rem)] font-extrabold uppercase leading-none tracking-[0.14em]"
+                  style={{
+                    fontFamily: MONO_FONT_FAMILY,
+                    color: "transparent",
+                    WebkitTextStroke: "1px var(--border-default)",
+                    opacity: 0.55,
+                  }}
+                >
+                  bixai.dev
+                </div>
                 <h2
                   className="mb-3 text-2xl font-bold tracking-tight"
                   style={{
@@ -389,6 +401,15 @@ export function Chat() {
                 >
                   What can I help with?
                 </h2>
+                <p
+                  className="mb-3 text-[10px] uppercase tracking-[0.22em]"
+                  style={{
+                    fontFamily: MONO_FONT_FAMILY,
+                    color: "var(--text-muted)",
+                  }}
+                >
+                  Built with bixai.dev
+                </p>
                 <p
                   className="max-w-xs text-sm leading-relaxed"
                   style={{ color: "var(--text-tertiary)" }}
