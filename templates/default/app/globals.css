@@ -121,35 +121,6 @@ body::before {
   }
 }
 
-/* Hero geometric animation */
-.hero-diamond {
-  animation: diamondFloat 6s ease-in-out infinite;
-}
-
-@keyframes diamondFloat {
-  0%, 100% { transform: rotate(45deg) scale(1); }
-  50% { transform: rotate(45deg) scale(1.05); }
-}
-
-.hero-ring {
-  animation: ringPulse 4s ease-in-out infinite;
-}
-
-@keyframes ringPulse {
-  0%, 100% { opacity: 0.15; transform: scale(1); }
-  50% { opacity: 0.3; transform: scale(1.08); }
-}
-
-.hero-ring-delayed {
-  animation: ringPulse 4s ease-in-out 1.5s infinite;
-}
-
-/* Glow effect for active states */
-.copper-glow {
-  box-shadow: 0 0 20px rgba(176, 106, 42, 0.1),
-              0 0 60px rgba(176, 106, 42, 0.05);
-}
-
 /* Custom scrollbar */
 .custom-scrollbar::-webkit-scrollbar {
   width: 5px;
@@ -181,18 +152,6 @@ body::before {
     box-shadow: 0 0 12px rgba(176, 106, 42, 0.7);
   }
 }
-
-/* Input focus glow */
-.input-glow:focus-within {
-  box-shadow: 0 0 0 1px rgba(176, 106, 42, 0.3),
-              0 4px 24px rgba(176, 106, 42, 0.06);
-}
-
-/* Stagger animation delays */
-.stagger-1 { animation-delay: 0.05s; }
-.stagger-2 { animation-delay: 0.1s; }
-.stagger-3 { animation-delay: 0.15s; }
-.stagger-4 { animation-delay: 0.2s; }
 
 /* Selection color */
 ::selection {

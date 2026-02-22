@@ -2,17 +2,18 @@
 
 import { useMemo } from "react";
 import type { ConversationMeta } from "@/lib/storage";
+import { COPPER_GRADIENT, MONO_FONT_FAMILY } from "@/lib/uiPrimitives";
 
 type SidebarProps = {
   conversations: ConversationMeta[];
   activeId: string;
+  isStreaming: boolean;
   onNewChat: () => void;
   onSelectChat: (id: string) => void;
   onDeleteChat: (id: string) => void;
 };
 
 function groupByTime(conversations: ConversationMeta[]) {
-  const now = Date.now();
   const todayStart = new Date();
   todayStart.setHours(0, 0, 0, 0);
   const yesterdayStart = new Date(todayStart);
@@ -58,6 +59,7 @@ function relativeTime(timestamp: number): string {
 export function Sidebar({
   conversations,
   activeId,
+  isStreaming,
   onNewChat,
   onSelectChat,
   onDeleteChat,
@@ -91,11 +93,13 @@ export function Sidebar({
           <button
             type="button"
             onClick={onNewChat}
+            disabled={isStreaming}
             className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium transition-all duration-200 hover:scale-105 active:scale-95"
             style={{
-              fontFamily: "var(--font-jetbrains-mono), monospace",
-              background: "linear-gradient(135deg, var(--copper-700) 0%, var(--copper-600) 100%)",
+              fontFamily: MONO_FONT_FAMILY,
+              background: COPPER_GRADIENT,
               color: "var(--copper-100)",
+              opacity: isStreaming ? 0.5 : 1,
             }}
           >
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
@@ -112,7 +116,7 @@ export function Sidebar({
               <p
                 className="text-xs"
                 style={{
-                  fontFamily: "var(--font-jetbrains-mono), monospace",
+                  fontFamily: MONO_FONT_FAMILY,
                   color: "var(--text-muted)",
                 }}
               >
@@ -126,7 +130,7 @@ export function Sidebar({
               <div
                 className="px-3 py-1.5 text-[10px] font-medium uppercase tracking-[0.15em]"
                 style={{
-                  fontFamily: "var(--font-jetbrains-mono), monospace",
+                  fontFamily: MONO_FONT_FAMILY,
                   color: "var(--text-muted)",
                 }}
               >
@@ -143,11 +147,13 @@ export function Sidebar({
                     <button
                       type="button"
                       onClick={() => onSelectChat(conv.id)}
+                      disabled={isStreaming}
                       className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm transition-colors duration-150"
                       style={{
                         background: isActive ? "var(--accent-glow-strong)" : "transparent",
                         borderLeft: isActive ? "2px solid var(--copper-500)" : "2px solid transparent",
                         color: isActive ? "var(--text-primary)" : "var(--text-secondary)",
+                        opacity: isStreaming ? 0.75 : 1,
                       }}
                     >
                       <span className="flex-1 truncate text-[13px]">
@@ -156,7 +162,7 @@ export function Sidebar({
                       <span
                         className="shrink-0 text-[10px] group-hover:hidden"
                         style={{
-                          fontFamily: "var(--font-jetbrains-mono), monospace",
+                          fontFamily: MONO_FONT_FAMILY,
                           color: "var(--text-muted)",
                         }}
                       >
@@ -169,12 +175,17 @@ export function Sidebar({
                       type="button"
                       onClick={(e) => {
                         e.stopPropagation();
+                        if (isStreaming) return;
                         if (confirm("Delete this conversation?")) {
                           onDeleteChat(conv.id);
                         }
                       }}
+                      disabled={isStreaming}
                       className="absolute right-2 top-1/2 hidden -translate-y-1/2 rounded p-1 transition-colors group-hover:flex"
-                      style={{ color: "var(--text-tertiary)" }}
+                      style={{
+                        color: "var(--text-tertiary)",
+                        opacity: isStreaming ? 0.5 : 1,
+                      }}
                     >
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                         <path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2" />

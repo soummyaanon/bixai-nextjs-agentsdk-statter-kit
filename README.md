@@ -28,11 +28,14 @@ Built for real agent applications with a clean structure:
 ## Quick start
 
 ```bash
-npx @bixai/create-agent-sdk-starter my-agent-app
+npx @bixai/create-agent-sdk-starter
+# prompts:
+# - project name (example: my-agent-app)
+# - package manager (npm/pnpm/yarn/bun)
+# - install dependencies now (Y/n)
 cd my-agent-app
-npm install
 cp .env.local.example .env.local   # then add your OPENAI_API_KEY
-npm run dev
+# then run dev using your selected package manager
 ```
 
 ## Create a new app
@@ -40,32 +43,38 @@ npm run dev
 Using npm:
 
 ```bash
-npx @bixai/create-agent-sdk-starter my-app
+npx @bixai/create-agent-sdk-starter
 ```
 
 Using pnpm:
 
 ```bash
-pnpm dlx @bixai/create-agent-sdk-starter my-app
+pnpm dlx @bixai/create-agent-sdk-starter
 ```
 
 Using yarn:
 
 ```bash
-yarn dlx @bixai/create-agent-sdk-starter my-app
+yarn dlx @bixai/create-agent-sdk-starter
 ```
 
 Using bun:
 
 ```bash
-bunx @bixai/create-agent-sdk-starter my-app
+bunx @bixai/create-agent-sdk-starter
 ```
 
 Or install globally:
 
 ```bash
 npm install -g @bixai/create-agent-sdk-starter
-create-agent-sdk-starter my-agent-app
+create-agent-sdk-starter
+```
+
+You can still skip the prompt by passing a name directly:
+
+```bash
+npx @bixai/create-agent-sdk-starter my-app
 ```
 
 ---
@@ -73,10 +82,12 @@ create-agent-sdk-starter my-agent-app
 ## CLI reference
 
 ```bash
-create-agent-sdk-starter <project-name>
+create-agent-sdk-starter [project-name]
 ```
 
-- `project-name` — target directory for the new app
+- `project-name` — optional target directory name
+- If omitted, the CLI prompts for project name interactively
+- Interactive mode also prompts for package manager and optional dependency install
 - Fails if the directory already exists
 - Automatically renames `gitignore` → `.gitignore`
 

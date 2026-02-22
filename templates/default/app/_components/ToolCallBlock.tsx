@@ -1,14 +1,8 @@
 "use client";
 
 import { useState } from "react";
-
-type ToolCall = {
-  callId: string;
-  name: string;
-  arguments: Record<string, unknown>;
-  output?: unknown;
-  status: "calling" | "done";
-};
+import type { ToolCall } from "@/lib/chatTypes";
+import { MONO_FONT_FAMILY } from "@/lib/uiPrimitives";
 
 export function ToolCallBlock({ toolCall }: { toolCall: ToolCall }) {
   const [collapsed, setCollapsed] = useState(false);
@@ -25,7 +19,7 @@ export function ToolCallBlock({ toolCall }: { toolCall: ToolCall }) {
         type="button"
         onClick={() => setCollapsed(!collapsed)}
         className="flex w-full items-center gap-2.5 px-3 py-2 text-left text-xs transition-colors"
-        style={{ fontFamily: "var(--font-jetbrains-mono), monospace" }}
+        style={{ fontFamily: MONO_FONT_FAMILY }}
       >
         <span
           className={`inline-block h-1.5 w-1.5 rounded-full ${
@@ -60,7 +54,7 @@ export function ToolCallBlock({ toolCall }: { toolCall: ToolCall }) {
           <div
             className="mb-1.5 text-[9px] font-medium uppercase tracking-[0.2em]"
             style={{
-              fontFamily: "var(--font-jetbrains-mono), monospace",
+              fontFamily: MONO_FONT_FAMILY,
               color: "var(--text-muted)",
             }}
           >
@@ -69,7 +63,7 @@ export function ToolCallBlock({ toolCall }: { toolCall: ToolCall }) {
           <pre
             className="overflow-x-auto whitespace-pre-wrap break-all rounded-md p-2.5 text-[11px] leading-relaxed"
             style={{
-              fontFamily: "var(--font-jetbrains-mono), monospace",
+              fontFamily: MONO_FONT_FAMILY,
               background: "var(--bg-primary)",
               color: "var(--copper-200)",
               border: "1px solid var(--border-subtle)",
@@ -83,7 +77,7 @@ export function ToolCallBlock({ toolCall }: { toolCall: ToolCall }) {
               <div
                 className="mb-1.5 mt-3 text-[9px] font-medium uppercase tracking-[0.2em]"
                 style={{
-                  fontFamily: "var(--font-jetbrains-mono), monospace",
+                  fontFamily: MONO_FONT_FAMILY,
                   color: "var(--text-muted)",
                 }}
               >
@@ -92,7 +86,7 @@ export function ToolCallBlock({ toolCall }: { toolCall: ToolCall }) {
               <pre
                 className="overflow-x-auto whitespace-pre-wrap break-all rounded-md p-2.5 text-[11px] leading-relaxed"
                 style={{
-                  fontFamily: "var(--font-jetbrains-mono), monospace",
+                  fontFamily: MONO_FONT_FAMILY,
                   background: "var(--bg-primary)",
                   color: "var(--copper-100)",
                   border: "1px solid var(--border-subtle)",

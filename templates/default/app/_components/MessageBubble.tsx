@@ -1,22 +1,8 @@
 "use client";
 
 import { ToolCallBlock } from "./ToolCallBlock";
-
-type ToolCall = {
-  callId: string;
-  name: string;
-  arguments: Record<string, unknown>;
-  output?: unknown;
-  status: "calling" | "done";
-};
-
-type Message = {
-  id: string;
-  role: "user" | "assistant";
-  content: string;
-  toolCalls: ToolCall[];
-  isStreaming: boolean;
-};
+import type { Message } from "@/lib/chatTypes";
+import { COPPER_GRADIENT, MONO_FONT_FAMILY } from "@/lib/uiPrimitives";
 
 export function MessageBubble({ message }: { message: Message }) {
   if (message.role === "user") {
@@ -25,7 +11,7 @@ export function MessageBubble({ message }: { message: Message }) {
         <div
           className="max-w-[75%] rounded-2xl rounded-br-sm px-4 py-3 text-sm leading-relaxed"
           style={{
-            background: "linear-gradient(135deg, var(--copper-700) 0%, var(--copper-600) 100%)",
+            background: COPPER_GRADIENT,
             color: "var(--copper-50)",
           }}
         >
@@ -47,7 +33,7 @@ export function MessageBubble({ message }: { message: Message }) {
           <span
             className="text-[10px] font-medium uppercase tracking-[0.15em]"
             style={{
-              fontFamily: "var(--font-jetbrains-mono), monospace",
+              fontFamily: MONO_FONT_FAMILY,
               color: "var(--text-tertiary)",
             }}
           >

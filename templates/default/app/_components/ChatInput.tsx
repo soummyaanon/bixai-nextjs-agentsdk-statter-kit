@@ -1,6 +1,12 @@
 "use client";
 
 import { useRef, useCallback, type KeyboardEvent } from "react";
+import {
+  COPPER_GRADIENT,
+  DISPLAY_FONT_FAMILY,
+  ICON_BUTTON_CLASS,
+  MONO_FONT_FAMILY,
+} from "@/lib/uiPrimitives";
 
 type ChatInputProps = {
   onSend: (message: string) => void;
@@ -51,7 +57,7 @@ export function ChatInput({ onSend, onStop, isStreaming }: ChatInputProps) {
             placeholder="Message..."
             className="flex-1 resize-none bg-transparent px-4 py-3 text-sm outline-none placeholder:opacity-40"
             style={{
-              fontFamily: "var(--font-syne), system-ui",
+              fontFamily: DISPLAY_FONT_FAMILY,
               color: "var(--text-primary)",
             }}
             onKeyDown={handleKeyDown}
@@ -64,7 +70,7 @@ export function ChatInput({ onSend, onStop, isStreaming }: ChatInputProps) {
           <button
             type="button"
             onClick={onStop}
-            className="group flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border transition-all duration-200 hover:scale-105 active:scale-95"
+            className={ICON_BUTTON_CLASS}
             style={{
               borderColor: "#442222",
               background: "linear-gradient(135deg, #2a1010 0%, #1a0808 100%)",
@@ -78,10 +84,10 @@ export function ChatInput({ onSend, onStop, isStreaming }: ChatInputProps) {
           <button
             type="button"
             onClick={handleSend}
-            className="group flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border transition-all duration-200 hover:scale-105 active:scale-95"
+            className={ICON_BUTTON_CLASS}
             style={{
               borderColor: "var(--copper-700)",
-              background: "linear-gradient(135deg, var(--copper-700) 0%, var(--copper-600) 100%)",
+              background: COPPER_GRADIENT,
             }}
           >
             <svg
@@ -105,7 +111,7 @@ export function ChatInput({ onSend, onStop, isStreaming }: ChatInputProps) {
         <p
           className="text-center text-[10px] tracking-wider"
           style={{
-            fontFamily: "var(--font-jetbrains-mono), monospace",
+            fontFamily: MONO_FONT_FAMILY,
             color: "var(--text-muted)",
           }}
         >

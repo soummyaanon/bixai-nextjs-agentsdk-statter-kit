@@ -1,4 +1,9 @@
-import { MemorySession, Runner, type Session } from "@openai/agents";
+import {
+  MemorySession,
+  Runner,
+  type AgentInputItem,
+  type Session,
+} from "@openai/agents";
 import { z } from "zod";
 import { mainAgent } from "@/agents/main.agent";
 
@@ -110,6 +115,10 @@ function pruneSessionStore(now: number): void {
   }
 }
 
+function isReasoningItem(item: AgentInputItem): boolean {
+  return (item as { type?: string }).type === "reasoning";
+}
+
 /**
  * Wraps a MemorySession to filter out reasoning items from getItems().
  * Models like gpt-5-mini produce reasoning items that the API rejects
@@ -127,7 +136,18 @@ class FilteredMemorySession implements Session {
   }
 
   async getItems(limit?: number) {
-    return this.inner.getItems(limit);
+    const items = await this.inner.getItems();
+    const filtered = items.filter((item) => !isReasoningItem(item));
+
+    if (limit === undefined) {
+      return filtered;
+    }
+
+    if (limit <= 0) {
+      return [];
+    }
+
+    return filtered.slice(-limit);
   }
 
   addItems(items: Parameters<Session["addItems"]>[0]) {

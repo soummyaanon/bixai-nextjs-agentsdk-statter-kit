@@ -11,16 +11,9 @@ import {
   getMessages,
   saveMessages,
   type ConversationMeta,
-  type Message,
 } from "@/lib/storage";
-
-type ToolCall = {
-  callId: string;
-  name: string;
-  arguments: Record<string, unknown>;
-  output?: unknown;
-  status: "calling" | "done";
-};
+import type { Message, ToolCall } from "@/lib/chatTypes";
+import { DISPLAY_FONT_FAMILY, MONO_FONT_FAMILY } from "@/lib/uiPrimitives";
 
 function generateId() {
   return Math.random().toString(36).slice(2, 10);
@@ -49,12 +42,12 @@ function parseSSE(chunk: string): { event: string; data: string }[] {
 
 export function Chat() {
   const [messages, setMessages] = useState<Message[]>([]);
-  const [isStreaming, setIsStreaming] = useState(false);
   const [conversationId, setConversationId] = useState(() => `chat-${generateId()}`);
   const [conversations, setConversations] = useState<ConversationMeta[]>([]);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const abortRef = useRef<AbortController | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const isStreaming = messages.some((m) => m.isStreaming);
 
   // Load conversations from localStorage on mount
   useEffect(() => {
@@ -77,19 +70,22 @@ export function Chat() {
   }, [messages, isStreaming, conversationId]);
 
   const handleNewChat = useCallback(() => {
+    if (isStreaming) return;
     const newId = `chat-${generateId()}`;
     setConversationId(newId);
     setMessages([]);
-  }, []);
+  }, [isStreaming]);
 
   const handleSelectChat = useCallback((id: string) => {
+    if (isStreaming) return;
     const loaded = getMessages(id);
     setConversationId(id);
     setMessages(loaded);
-  }, []);
+  }, [isStreaming]);
 
   const handleDeleteChat = useCallback(
     (id: string) => {
+      if (isStreaming) return;
       deleteConversation(id);
       setConversations(getConversations());
       if (id === conversationId) {
@@ -103,11 +99,12 @@ export function Chat() {
         }
       }
     },
-    [conversationId, handleNewChat]
+    [conversationId, handleNewChat, isStreaming]
   );
 
   const handleSend = useCallback(
     async (text: string) => {
+      if (isStreaming) return;
       const userMsg: Message = {
         id: generateId(),
         role: "user",
@@ -126,7 +123,6 @@ export function Chat() {
       };
 
       setMessages((prev) => [...prev, userMsg, assistantMsg]);
-      setIsStreaming(true);
 
       // Save/update conversation meta
       const now = Date.now();
@@ -160,7 +156,6 @@ export function Chat() {
                 : m
             )
           );
-          setIsStreaming(false);
           return;
         }
 
@@ -296,7 +291,6 @@ export function Chat() {
           );
         }
       } finally {
-        setIsStreaming(false);
         abortRef.current = null;
         // Update timestamp
         const meta = getConversations().find((c) => c.id === conversationId);
@@ -306,7 +300,7 @@ export function Chat() {
         }
       }
     },
-    [conversationId, conversations]
+    [conversationId, conversations, isStreaming]
   );
 
   const handleStop = useCallback(() => {
@@ -320,6 +314,7 @@ export function Chat() {
         <Sidebar
           conversations={conversations}
           activeId={conversationId}
+          isStreaming={isStreaming}
           onNewChat={handleNewChat}
           onSelectChat={handleSelectChat}
           onDeleteChat={handleDeleteChat}
@@ -352,7 +347,7 @@ export function Chat() {
             <span
               className="text-[11px] font-semibold uppercase tracking-[0.2em]"
               style={{
-                fontFamily: "var(--font-jetbrains-mono), monospace",
+                fontFamily: MONO_FONT_FAMILY,
                 color: "var(--text-secondary)",
               }}
             >
@@ -368,7 +363,7 @@ export function Chat() {
             <span
               className="text-[10px] uppercase tracking-widest"
               style={{
-                fontFamily: "var(--font-jetbrains-mono), monospace",
+                fontFamily: MONO_FONT_FAMILY,
                 color: "var(--text-muted)",
               }}
             >
@@ -388,7 +383,7 @@ export function Chat() {
                 <h2
                   className="mb-3 text-2xl font-bold tracking-tight"
                   style={{
-                    fontFamily: "var(--font-syne), system-ui",
+                    fontFamily: DISPLAY_FONT_FAMILY,
                     color: "var(--text-primary)",
                   }}
                 >
