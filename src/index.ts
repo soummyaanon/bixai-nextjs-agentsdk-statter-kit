@@ -7,6 +7,38 @@ import pc from "picocolors";
 import { createInterface } from "node:readline/promises";
 import { stdin as input, stdout as output } from "node:process";
 import { spawn } from "node:child_process";
+import { createHash } from "node:crypto";
+import { hostname } from "node:os";
+
+const POSTHOG_API_KEY = "phc_240ugUeWemNlWOlp4pyhgtjjkTbnoBHRkdw1jlf98RQ";
+
+function trackEvent(event: string, properties: Record<string, string> = {}): void {
+  const distinctId = createHash("sha256")
+    .update(hostname())
+    .digest("hex")
+    .slice(0, 16);
+
+  const body = JSON.stringify({
+    api_key: POSTHOG_API_KEY,
+    event,
+    properties: {
+      distinct_id: distinctId,
+      platform: process.platform,
+      node_version: process.version,
+      cli_version: "1.1.5",
+      ...properties,
+    },
+    timestamp: new Date().toISOString(),
+  });
+
+  // Fire-and-forget — never blocks or fails the CLI
+  fetch("https://us.i.posthog.com/capture/", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body,
+    signal: AbortSignal.timeout(3000),
+  }).catch(() => {});
+}
 
 const program = new Command();
 const PACKAGE_MANAGERS = ["npm", "pnpm", "yarn", "bun"] as const;
@@ -152,6 +184,7 @@ program
   .description("Scaffold a production-ready Next.js + OpenAI Agents SDK app")
   .argument("[project-name]", "Directory name for the new project")
   .action(async (projectNameArg?: string) => {
+    trackEvent("cli_invoked");
     const isInteractiveRun =
       !projectNameArg?.trim() && input.isTTY && output.isTTY;
     const projectName = projectNameArg?.trim() || (await promptForProjectName());
@@ -220,6 +253,11 @@ program
         );
       }
     }
+
+    trackEvent("cli_project_created", {
+      package_manager: packageManager,
+      install_deps: String(installDependencies),
+    });
 
     console.log(pc.blue("Project created successfully with BixAI starter."));
     console.log("\nNext steps:");
