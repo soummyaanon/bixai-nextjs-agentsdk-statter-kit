@@ -25,7 +25,7 @@ function trackEvent(event: string, properties: Record<string, string> = {}): voi
       distinct_id: distinctId,
       platform: process.platform,
       node_version: process.version,
-      cli_version: "1.1.9",
+      cli_version: "1.1.10",
       ...properties,
     },
     timestamp: new Date().toISOString(),
