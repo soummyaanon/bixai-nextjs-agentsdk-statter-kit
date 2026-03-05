@@ -76,7 +76,7 @@ Maintainers will follow these guidelines in determining consequences for any act
 
 **Impact:** Demonstrating a pattern of violation of community standards, including sustained inappropriate behavior, harassment, or aggression toward any individual.
 
-**Consequence:** A permanent ban from any sort of public interaction within the community.
+**Consequence:** A permanent ban from any sort of public interaction within the community
 
 ---
 
