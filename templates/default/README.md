@@ -1,45 +1,66 @@
-# Agent Template
+# Agent SDK Starter
 
-Production-oriented starter for building AI agent systems with:
+Production-ready Next.js + OpenAI Agents SDK app — scaffolded by [`@bixai/create-agent-sdk-starter`](https://www.npmjs.com/package/@bixai/create-agent-sdk-starter).
 
-- Next.js App Router
-- OpenAI Agents JS SDK
-- Tool-first design with schema validation
-- Runtime execution layer separated from HTTP/UI
-- Optional streaming responses via SSE
+---
 
-## Project Structure
+## Features
 
-- `agents/main.agent.ts`: main agent definition and stable instructions
-- `tools/`: deterministic, validated tools
-- `runtime/agentRunner.ts`: SDK execution wrapper
-- `app/api/agent/route.ts`: HTTP API with validation and streaming support
+- **Next.js 16 App Router** with React 19
+- **OpenAI Agents SDK** — multi-turn, tool-calling, streaming
+- **Tool-first architecture** — Zod-validated, deterministic tools
+- **SSE streaming** — real-time token and tool-call events
+- **Runtime isolation** — agent execution decoupled from HTTP routing
+- **Local session memory** — in-memory conversation threading with TTL eviction
 
-## Environment
+---
 
-Create `.env.local`:
+## Project structure
+
+```
+agents/main.agent.ts      — Agent definition and instructions
+tools/                    — Individual tool implementations (Zod-validated)
+runtime/agentRunner.ts    — SDK execution wrapper (run + stream)
+app/api/agent/route.ts    — HTTP API with error handling and SSE support
+app/_components/          — Chat UI (Sidebar, MessageBubble, ToolCallBlock)
+lib/                      — Shared types, storage helpers, UI primitives
+```
+
+---
+
+## Setup
+
+1. Copy the example env file and add your key:
 
 ```bash
-OPENAI_API_KEY=your_key_here
-# Optional
-# OPENAI_MODEL=gpt-5-mini
+cp .env.local.example .env.local
+```
+
+```bash
+# .env.local
+OPENAI_API_KEY=sk-...
+
+# Optional overrides
+# OPENAI_MODEL=gpt-4o-mini
 # AGENTS_TRACING_DISABLED=true
 # AGENTS_TRACE_INCLUDE_SENSITIVE_DATA=false
-# AGENT_LOCAL_SESSION_TTL_MS=1800000
-# AGENT_MAX_LOCAL_SESSIONS=200
+# AGENT_LOCAL_SESSION_TTL_MS=1800000   # session TTL in ms (default: 30 min)
+# AGENT_MAX_LOCAL_SESSIONS=200         # max concurrent sessions (default: 200)
 ```
 
-## Run
+2. Install dependencies and start:
 
 ```bash
-npm run dev
+npm install && npm run dev
 ```
+
+Open [http://localhost:3000](http://localhost:3000).
+
+---
 
 ## API
 
-### Standard run
-
-`POST /api/agent`
+### Standard (JSON) — `POST /api/agent`
 
 ```json
 {
@@ -49,12 +70,13 @@ npm run dev
 }
 ```
 
-`conversationId` behavior:
+**`conversationId` routing:**
 
-- If it matches `conv_[A-Za-z0-9_-]+` (for example `conv_abc123`), it is forwarded to OpenAI as a native conversation ID.
-- Otherwise (for example `thread-1`), it is used as a local in-memory thread key via SDK session memory.
-
-Example:
+| Value | Behavior |
+|---|---|
+| `conv_[A-Za-z0-9_-]+` (e.g. `conv_abc123`) | Forwarded to OpenAI as a native conversation ID |
+| Any other string (e.g. `thread-1`) | Used as a local in-memory session key |
+| Omitted | Stateless — no conversation history |
 
 ```bash
 curl -X POST http://localhost:3000/api/agent \
@@ -62,9 +84,7 @@ curl -X POST http://localhost:3000/api/agent \
   -d '{"message":"What is 42 multiplied by 13?"}'
 ```
 
-### Streaming run (SSE)
-
-`POST /api/agent?stream=true`
+### Streaming (SSE) — `POST /api/agent?stream=true`
 
 ```bash
 curl -N -X POST 'http://localhost:3000/api/agent?stream=true' \
@@ -72,24 +92,41 @@ curl -N -X POST 'http://localhost:3000/api/agent?stream=true' \
   -d '{"message":"Explain binary search in 5 lines"}'
 ```
 
-SSE events:
+**SSE event reference:**
 
 | Event | Payload | Description |
 |---|---|---|
 | `ready` | `{ ok: true }` | Stream initialized |
 | `text_delta` | `{ delta: string }` | Incremental text chunk |
 | `tool_call` | `{ callId, name, arguments }` | Tool invocation started |
-| `tool_output` | `{ callId, output }` | Tool returned a result |
+| `tool_output` | `{ callId, output }` | Tool result returned |
 | `done` | `{ output, responseId }` | Run completed |
-| `error` | `{ message }` | Error occurred |
+| `error` | `{ message }` | Error during execution |
 
-## Going to Production
+---
 
-See [PRODUCTION_GUIDE.md](./PRODUCTION_GUIDE.md) for auth, persistent sessions, rate limiting, and error monitoring.
+## Adding a tool
 
-## Best-Practice Notes
+1. Create `tools/my-tool.tool.ts` following the pattern in `tools/calculator.tool.ts`.
+2. Export it from `tools/index.ts`.
+3. The agent picks it up automatically — no other changes needed.
 
-- Inputs are validated with Zod at API/runtime boundaries.
-- Tools are deterministic and fail loudly for invalid operations.
-- Agent instructions are concise and tool-oriented.
-- Runtime logic is isolated from route handlers for extensibility.
+---
+
+## Going to production
+
+See [PRODUCTION_GUIDE.md](./PRODUCTION_GUIDE.md) for:
+
+- Authentication (API key, JWT, NextAuth, Clerk)
+- Rate limiting
+- Persistent session storage
+- Error monitoring
+
+---
+
+## Design principles
+
+- All inputs validated with Zod at API and runtime boundaries
+- Tools are deterministic and throw on invalid operations — no silent failures
+- Agent instructions are concise and tool-oriented
+- Runtime logic is isolated from route handlers for easy testing and extension

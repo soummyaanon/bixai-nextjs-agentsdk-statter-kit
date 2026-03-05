@@ -1,27 +1,30 @@
 # @bixai/create-agent-sdk-starter
 
-CLI to scaffold a production-ready Next.js + OpenAI Agents SDK starter app.
+[![npm](https://img.shields.io/npm/v/@bixai/create-agent-sdk-starter)](https://www.npmjs.com/package/@bixai/create-agent-sdk-starter)
+[![license](https://img.shields.io/npm/l/@bixai/create-agent-sdk-starter)](LICENSE)
+[![node](https://img.shields.io/node/v/@bixai/create-agent-sdk-starter)](https://nodejs.org)
 
-**Open source** — If this helps you build agent apps, consider giving it a ⭐ [star on GitHub](https://github.com/soummyaanon/bixai-nextjs-agentsdk-statter-kit)!
+CLI to scaffold a production-ready **Next.js + OpenAI Agents SDK** starter app in seconds.
+
+If this helps you ship agent apps faster, consider giving it a ⭐ [star on GitHub](https://github.com/soummyaanon/bixai-nextjs-agentsdk-statter-kit)!
 
 ---
 
-## Why this package
+## What you get
 
-Built for real agent applications with a clean structure:
-
-- Next.js App Router baseline
-- OpenAI Agents SDK integration
-- Tool-first architecture with typed boundaries
-- API route with standard JSON and SSE streaming
-- Runtime layer separated from HTTP route handlers
+- **Next.js 16 App Router** — baseline project, no cruft
+- **OpenAI Agents SDK** — integrated and configured out of the box
+- **Tool-first architecture** — typed tool boundaries with Zod validation
+- **Dual transport** — standard JSON responses and SSE streaming on the same route
+- **Runtime isolation** — agent execution layer is separate from route handlers
+- **Production guide** — auth, rate limiting, persistent sessions, and monitoring patterns included
 
 ---
 
 ## Requirements
 
-- Node.js `20.9+` — required by Next.js 16.x
-- npm
+- **Node.js `20.9+`** — required by Next.js 16.x
+- Any of: `npm`, `pnpm`, `yarn`, or `bun`
 
 ---
 
@@ -29,67 +32,59 @@ Built for real agent applications with a clean structure:
 
 ```bash
 npx @bixai/create-agent-sdk-starter
-# prompts:
-# - project name (example: my-agent-app)
-# - package manager (npm/pnpm/yarn/bun)
-# - install dependencies now (Y/n)
+# Prompts for:
+#   - project name  (e.g. my-agent-app)
+#   - package manager  (npm / pnpm / yarn / bun)
+#   - install dependencies now  (Y/n)
 cd my-agent-app
-cp .env.local.example .env.local   # then add your OPENAI_API_KEY
-# then run dev using your selected package manager
+cp .env.local.example .env.local   # add your OPENAI_API_KEY
+npm run dev
 ```
 
 ## Create a new app
 
-Using npm:
-
 ```bash
+# npm
 npx @bixai/create-agent-sdk-starter
-```
 
-Using pnpm:
-
-```bash
+# pnpm
 pnpm dlx @bixai/create-agent-sdk-starter
-```
 
-Using yarn:
-
-```bash
+# yarn
 yarn dlx @bixai/create-agent-sdk-starter
-```
 
-Using bun:
-
-```bash
+# bun
 bunx @bixai/create-agent-sdk-starter
 ```
 
-Or install globally:
+**Skip the prompt** by passing the project name directly:
+
+```bash
+npx @bixai/create-agent-sdk-starter my-app
+```
+
+**Install globally** and reuse:
 
 ```bash
 npm install -g @bixai/create-agent-sdk-starter
 create-agent-sdk-starter
 ```
 
-You can still skip the prompt by passing a name directly:
-
-```bash
-npx @bixai/create-agent-sdk-starter my-app
-```
-
 ---
 
 ## CLI reference
 
-```bash
+```
 create-agent-sdk-starter [project-name]
 ```
 
-- `project-name` — optional target directory name
-- If omitted, the CLI prompts for project name interactively
-- Interactive mode also prompts for package manager and optional dependency install
-- Fails if the directory already exists
-- Automatically renames `gitignore` → `.gitignore`
+| Option | Description |
+|---|---|
+| `project-name` | Target directory name. Prompts interactively if omitted. |
+
+- Fails early if the target directory already exists
+- Interactive mode selects package manager and optionally installs dependencies
+- Automatically renames `gitignore` → `.gitignore` post-copy
 
 ---
 
@@ -111,13 +106,13 @@ my-agent-app/
 
 ## Configure
 
-Create `.env.local` in the generated project :
+Copy `.env.local.example` to `.env.local` and add your key:
 
 ```bash
-OPENAI_API_KEY=your_key_here
+OPENAI_API_KEY=sk-...
 
-# Optional
-# OPENAI_MODEL=gpt-5-mini
+# Optional overrides
+# OPENAI_MODEL=gpt-4o-mini
 # AGENTS_TRACING_DISABLED=true
 # AGENTS_TRACE_INCLUDE_SENSITIVE_DATA=false
 # AGENT_LOCAL_SESSION_TTL_MS=1800000
@@ -127,14 +122,17 @@ OPENAI_API_KEY=your_key_here
 Then start the dev server:
 
 ```bash
-npm run dev
+npm run dev        # npm
+pnpm dev           # pnpm
+yarn dev           # yarn
+bun run dev        # bun
 ```
 
 ---
 
 ## Test the API
 
-Standard request:
+**Standard (JSON) request:**
 
 ```bash
 curl -X POST http://localhost:3000/api/agent \
@@ -142,7 +140,7 @@ curl -X POST http://localhost:3000/api/agent \
   -d '{"message":"What is 42 multiplied by 13?"}'
 ```
 
-Streaming request:
+**Streaming (SSE) request:**
 
 ```bash
 curl -N -X POST "http://localhost:3000/api/agent?stream=true" \
@@ -156,9 +154,9 @@ See `PRODUCTION_GUIDE.md` in the generated project for auth, rate limiting, pers
 
 ## Troubleshooting
 
-`**npx` fails on older Node** — Upgrade to Node.js `20.9+` and retry.
+**`npx` fails on older Node** — Upgrade to Node.js `20.9+` and retry.
 
-**npm page README is stale** — npm renders the README bundled at publish time. Any update requires a new package version.
+**npm README is stale** — npm renders the README bundled at publish time. Updates require a new package version.
 
 **macOS `EPERM` under `~/.npm`** — Fix permissions:
 
@@ -170,7 +168,7 @@ sudo chown -R "$(id -u)":"$(id -g)" ~/.npm
 
 ## License
 
-[MIT](LICENSE) — see [LICENSE](LICENSE) for details.
+[MIT](LICENSE)
 
 ---
 

@@ -72,6 +72,7 @@ function assertApiKey(): void {
   const placeholderValues = new Set([
     "",
     "your_key_here",
+    "your_openai_api_key_here",
     "sk-your_key_here",
     "replace_me",
     "changeme",

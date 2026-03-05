@@ -50,7 +50,7 @@ export const weatherTool = tool({
   execute: async ({ location }) => {
     // Step 1: Geocode the city name
     const geoUrl = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(location)}&count=1`;
-    const geoRes = await fetch(geoUrl);
+    const geoRes = await fetch(geoUrl, { signal: AbortSignal.timeout(10_000) });
     if (!geoRes.ok) {
       throw new Error(`Geocoding request failed with status ${geoRes.status}`);
     }
@@ -64,7 +64,7 @@ export const weatherTool = tool({
 
     // Step 2: Fetch current weather
     const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m`;
-    const weatherRes = await fetch(weatherUrl);
+    const weatherRes = await fetch(weatherUrl, { signal: AbortSignal.timeout(10_000) });
     if (!weatherRes.ok) {
       throw new Error(`Weather request failed with status ${weatherRes.status}`);
     }

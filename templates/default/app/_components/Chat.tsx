@@ -16,7 +16,7 @@ import type { Message, ToolCall } from "@/lib/chatTypes";
 import { DISPLAY_FONT_FAMILY, MONO_FONT_FAMILY } from "@/lib/uiPrimitives";
 
 function generateId() {
-  return Math.random().toString(36).slice(2, 10);
+  return crypto.randomUUID();
 }
 
 function parseSSE(chunk: string): { event: string; data: string }[] {
