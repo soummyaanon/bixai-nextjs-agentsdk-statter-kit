@@ -1,4 +1,4 @@
-# @bixai/create-agent-sdk-starter
+# @bixai/Agent SDK Statter Kit
 
 [![npm](https://img.shields.io/npm/v/@bixai/create-agent-sdk-starter)](https://www.npmjs.com/package/@bixai/create-agent-sdk-starter)
 [![license](https://img.shields.io/npm/l/@bixai/create-agent-sdk-starter)](LICENSE)
