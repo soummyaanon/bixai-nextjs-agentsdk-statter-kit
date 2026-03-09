@@ -3,6 +3,7 @@
 [![npm](https://img.shields.io/npm/v/@bixai/create-agent-sdk-starter)](https://www.npmjs.com/package/@bixai/create-agent-sdk-starter)
 [![license](https://img.shields.io/npm/l/@bixai/create-agent-sdk-starter)](LICENSE)
 [![node](https://img.shields.io/node/v/@bixai/create-agent-sdk-starter)](https://nodejs.org)
+[![AweOSS Score](https://api.aweoss.dev/badge/soummyaanon/bixai-nextjs-agentsdk-statter-kit.svg?style=plastic&type=score)](https://aweoss.dev/projects/soummyaanon-bixai-nextjs-agentsdk-statter-kit)
 
 CLI to scaffold a production-ready **Next.js + OpenAI Agents SDK** starter app in seconds.
 
