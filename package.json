@@ -1,6 +1,6 @@
 {
   "name": "@bixai/create-agent-sdk-starter",
-  "version": "1.2.8",
+  "version": "1.2.9",
   "description": "BixAI CLI to scaffold a Next.js + OpenAI Agents SDK starter app",
   "main": "dist/index.js",
   "bin": {
