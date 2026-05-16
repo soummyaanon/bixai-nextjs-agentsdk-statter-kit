@@ -121,9 +121,12 @@ function isReasoningItem(item: AgentInputItem): boolean {
 }
 
 /**
- * Wraps a MemorySession to filter out reasoning items from getItems().
- * Models like gpt-5-mini produce reasoning items that the API rejects
- * when sent back without their required following item.
+ * Wraps a MemorySession to strip ONLY trailing orphan reasoning items.
+ * The Responses API requires each message item to be accompanied by the
+ * reasoning item it references; stripping reasoning wholesale produces
+ * "msg ... was provided without its required 'reasoning' item" 400s.
+ * Trailing reasoning with no following message (e.g. from an interrupted
+ * run) is still unsafe to replay, so we drop just that tail.
  */
 class FilteredMemorySession implements Session {
   private inner: MemorySession;
@@ -138,7 +141,11 @@ class FilteredMemorySession implements Session {
 
   async getItems(limit?: number) {
     const items = await this.inner.getItems();
-    const filtered = items.filter((item) => !isReasoningItem(item));
+    let endIndex = items.length;
+    while (endIndex > 0 && isReasoningItem(items[endIndex - 1]!)) {
+      endIndex -= 1;
+    }
+    const filtered = endIndex === items.length ? items : items.slice(0, endIndex);
 
     if (limit === undefined) {
       return filtered;
