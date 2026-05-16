@@ -1,0 +1,55 @@
+{
+  "name": "agent-template",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint",
+    "analyze": "ANALYZE=true next build"
+  },
+  "dependencies": {
+    "@openai/agents": "^0.11.4",
+    "next": "^16.2.6",
+    "openai": "^6.38.0",
+    "react": "^19.2.6",
+    "react-dom": "^19.2.6",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@next/bundle-analyzer": "^16.2.6",
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^10",
+    "eslint-config-next": "^16.2.6",
+    "tailwindcss": "^4",
+    "typescript": "^5"
+  },
+  "overrides": {
+    "postcss": "^8.5.10",
+    "brace-expansion": "^2.0.2"
+  },
+  "pnpm": {
+    "overrides": {
+      "postcss": "^8.5.10",
+      "brace-expansion": "^2.0.2"
+    },
+    "onlyBuiltDependencies": [
+      "sharp",
+      "unrs-resolver"
+    ]
+  },
+  "resolutions": {
+    "postcss": "^8.5.10",
+    "brace-expansion": "^2.0.2"
+  },
+  "packageManager": "pnpm@10.33.0",
+  "engines": {
+    "node": ">=22.11.0",
+    "pnpm": ">=10",
+    "npm": ">=10"
+  }
+}

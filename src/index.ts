@@ -9,10 +9,27 @@ import { stdin as input, stdout as output } from "node:process";
 import { spawn } from "node:child_process";
 import { createHash } from "node:crypto";
 import { hostname } from "node:os";
+import { readFileSync, readdirSync, type Dirent } from "node:fs";
 
 const POSTHOG_API_KEY = "phc_240ugUeWemNlWOlp4pyhgtjjkTbnoBHRkdw1jlf98RQ";
 
+const PKG = JSON.parse(
+  readFileSync(path.join(__dirname, "..", "package.json"), "utf8"),
+) as { version: string };
+const CLI_VERSION = PKG.version;
+
+let telemetryEnabledFlag = true;
+
+function isTelemetryEnabled(): boolean {
+  if (!telemetryEnabledFlag) return false;
+  if (process.env.BIXAI_TELEMETRY === "0") return false;
+  if (process.env.DO_NOT_TRACK === "1") return false;
+  return true;
+}
+
 function trackEvent(event: string, properties: Record<string, string> = {}): void {
+  if (!isTelemetryEnabled()) return;
+
   const distinctId = createHash("sha256")
     .update(hostname())
     .digest("hex")
@@ -25,7 +42,7 @@ function trackEvent(event: string, properties: Record<string, string> = {}): voi
       distinct_id: distinctId,
       platform: process.platform,
       node_version: process.version,
-      cli_version: "1.3.0",
+      cli_version: CLI_VERSION,
       ...properties,
     },
     timestamp: new Date().toISOString(),
@@ -50,6 +67,41 @@ type InteractiveOptions = {
   installDependencies: boolean;
 };
 
+type CliOptions = {
+  yes?: boolean;
+  pm?: string;
+  install?: boolean;
+  skipInstall?: boolean;
+  telemetry: boolean;
+  git: boolean;
+  template?: string;
+};
+
+const DEFAULT_TEMPLATE = "default";
+
+function listAvailableTemplates(): string[] {
+  const templatesRoot = path.resolve(__dirname, "../templates");
+  try {
+    return readdirSync(templatesRoot, { withFileTypes: true })
+      .filter((entry: Dirent) => entry.isDirectory())
+      .map((entry: Dirent) => entry.name)
+      .sort();
+  } catch {
+    return [DEFAULT_TEMPLATE];
+  }
+}
+
+function validateProjectName(name: string): string | null {
+  if (!name) return "Project name is required.";
+  if (name === "." || name === "..") return "Project name cannot be '.' or '..'.";
+  if (name.includes("/") || name.includes("\\")) {
+    return "Project name cannot contain path separators.";
+  }
+  if (name.startsWith("-")) return "Project name cannot start with a dash.";
+  if (/[\s]/.test(name)) return "Project name cannot contain whitespace.";
+  return null;
+}
+
 async function promptForProjectName(): Promise<string | null> {
   if (!input.isTTY || !output.isTTY) {
     return null;
@@ -59,8 +111,9 @@ async function promptForProjectName(): Promise<string | null> {
   try {
     while (true) {
       const projectName = (await rl.question("Project name: ")).trim();
-      if (!projectName) {
-        console.log(pc.yellow("Project name is required."));
+      const error = validateProjectName(projectName);
+      if (error) {
+        console.log(pc.yellow(error));
         continue;
       }
 
@@ -157,11 +210,12 @@ async function runCommand(
   command: string,
   args: string[],
   cwd: string,
+  options: { silent?: boolean } = {},
 ): Promise<void> {
   await new Promise<void>((resolve, reject) => {
     const child = spawn(command, args, {
       cwd,
-      stdio: "inherit",
+      stdio: options.silent ? "ignore" : "inherit",
       shell: process.platform === "win32",
     });
 
@@ -179,35 +233,129 @@ async function runCommand(
   });
 }
 
+async function initGitRepo(targetDir: string): Promise<boolean> {
+  try {
+    await runCommand("git", ["init", "-q"], targetDir, { silent: true });
+    await runCommand("git", ["add", "-A"], targetDir, { silent: true });
+    await runCommand(
+      "git",
+      [
+        "commit",
+        "-m",
+        "Initial commit from @bixai/create-agent-sdk-starter",
+        "--quiet",
+      ],
+      targetDir,
+      { silent: true },
+    );
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 program
   .name("create-agent-sdk-starter")
   .description("Scaffold a production-ready Next.js + OpenAI Agents SDK app")
+  .version(CLI_VERSION)
   .argument("[project-name]", "Directory name for the new project")
-  .action(async (projectNameArg?: string) => {
+  .option("-y, --yes", "skip prompts and use sensible defaults")
+  .option("--pm <manager>", "package manager: pnpm | npm | yarn | bun")
+  .option("--install", "install dependencies after scaffolding")
+  .option("--skip-install", "skip installing dependencies")
+  .option("--no-telemetry", "disable anonymous usage telemetry")
+  .option("--no-git", "skip git repository initialization")
+  .option(
+    "-t, --template <name>",
+    `template to scaffold (one of: ${listAvailableTemplates().join(", ")})`,
+    DEFAULT_TEMPLATE,
+  )
+  .action(async (projectNameArg: string | undefined, opts: CliOptions) => {
+    if (opts.telemetry === false) telemetryEnabledFlag = false;
     trackEvent("cli_invoked");
-    const isInteractiveRun =
-      !projectNameArg?.trim() && input.isTTY && output.isTTY;
-    const projectName = projectNameArg?.trim() || (await promptForProjectName());
+
+    const isTTY = Boolean(input.isTTY && output.isTTY);
+    const skipPrompts = Boolean(opts.yes) || !isTTY;
+
+    // Resolve project name
+    let projectName = projectNameArg?.trim();
     if (!projectName) {
+      if (skipPrompts) {
+        console.error(
+          pc.red(
+            "Project name is required. Pass one as an argument or run in an interactive terminal.",
+          ),
+        );
+        process.exitCode = 1;
+        return;
+      }
+      const prompted = await promptForProjectName();
+      projectName = prompted ?? undefined;
+      if (!projectName) {
+        console.error(pc.red("Project name is required."));
+        process.exitCode = 1;
+        return;
+      }
+    } else {
+      const nameError = validateProjectName(projectName);
+      if (nameError) {
+        console.error(pc.red(nameError));
+        process.exitCode = 1;
+        return;
+      }
+    }
+
+    // Resolve package manager
+    let packageManager: PackageManager = "pnpm";
+    if (opts.pm) {
+      const parsed = parsePackageManager(opts.pm);
+      if (!parsed) {
+        console.error(
+          pc.red(
+            `Unknown package manager: ${opts.pm}. Use one of: ${PACKAGE_MANAGERS.join(", ")}.`,
+          ),
+        );
+        process.exitCode = 1;
+        return;
+      }
+      packageManager = parsed;
+    }
+
+    // Resolve install flag
+    let installDependencies: boolean;
+    if (opts.skipInstall) {
+      installDependencies = false;
+    } else if (opts.install) {
+      installDependencies = true;
+    } else if (opts.yes) {
+      installDependencies = true;
+    } else {
+      installDependencies = false;
+    }
+
+    // Full interactive prompts only when no project arg, TTY, not -y, no flags overriding
+    const fullInteractive =
+      !projectNameArg && isTTY && !opts.yes && !opts.pm && !opts.install && !opts.skipInstall;
+    if (fullInteractive) {
+      const interactive = await promptForInteractiveOptions();
+      packageManager = interactive.packageManager;
+      installDependencies = interactive.installDependencies;
+    }
+
+    const templateName = (opts.template ?? DEFAULT_TEMPLATE).trim();
+    const availableTemplates = listAvailableTemplates();
+    if (!availableTemplates.includes(templateName)) {
       console.error(
         pc.red(
-          "Project name is required. Pass one as an argument or run in an interactive terminal.",
+          `Unknown template: ${templateName}. Available: ${availableTemplates.join(", ")}.`,
         ),
       );
       process.exitCode = 1;
       return;
     }
 
-    let packageManager: PackageManager = "pnpm";
-    let installDependencies = false;
-    if (isInteractiveRun) {
-      const options = await promptForInteractiveOptions();
-      packageManager = options.packageManager;
-      installDependencies = options.installDependencies;
-    }
-
     const targetDir = path.resolve(process.cwd(), projectName);
-    const templateDir = path.resolve(__dirname, "../templates/default");
+    const templateDir = path.resolve(__dirname, "../templates", templateName);
 
     if (await fs.pathExists(targetDir)) {
       console.error(pc.red(`Target directory already exists: ${targetDir}`));
@@ -219,6 +367,14 @@ program
       console.error(pc.red(`Template directory not found: ${templateDir}`));
       process.exitCode = 1;
       return;
+    }
+
+    if (isTelemetryEnabled()) {
+      console.log(
+        pc.dim(
+          "Anonymous usage telemetry enabled. Set BIXAI_TELEMETRY=0 or pass --no-telemetry to opt out.",
+        ),
+      );
     }
 
     console.log(pc.green("Creating Agent SDK starter project..."));
@@ -281,9 +437,16 @@ program
       }
     }
 
+    let gitInitialized = false;
+    if (opts.git !== false) {
+      gitInitialized = await initGitRepo(targetDir);
+    }
+
     trackEvent("cli_project_created", {
       package_manager: packageManager,
       install_deps: String(installDependencies),
+      git_initialized: String(gitInitialized),
+      template: templateName,
     });
 
     console.log(pc.blue("Project created successfully with BixAI starter."));

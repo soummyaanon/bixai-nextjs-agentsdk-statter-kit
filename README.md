@@ -17,7 +17,9 @@ If this helps you ship agent apps faster, consider giving it a ⭐ [star on GitH
 - **OpenAI Agents SDK** — integrated and configured out of the box
 - **Tool-first architecture** — typed tool boundaries with Zod validation
 - **Dual transport** — standard JSON responses and SSE streaming on the same route
+- **Live agent indicator** — the UI shows which agent is active, including across handoffs
 - **Runtime isolation** — agent execution layer is separate from route handlers
+- **Multiple templates** — `default` (single agent + tools) and `handoffs` (triage → specialists)
 - **Production guide** — auth, rate limiting, persistent sessions, and monitoring patterns included
 
 ---
@@ -76,20 +78,49 @@ create-agent-sdk-starter
 ## CLI reference
 
 ```
-create-agent-sdk-starter [project-name]
+create-agent-sdk-starter [project-name] [options]
 ```
 
 | Option | Description |
 |---|---|
 | `project-name` | Target directory name. Prompts interactively if omitted. |
+| `-t, --template <name>` | Template to scaffold: `default` or `handoffs`. Default: `default`. |
+| `-y, --yes` | Skip prompts and use sensible defaults (pnpm, install, git init). |
+| `--pm <manager>` | Package manager: `pnpm`, `npm`, `yarn`, or `bun`. |
+| `--install` / `--skip-install` | Force install or skip install of dependencies. |
+| `--no-git` | Skip the initial `git init` + commit. |
+| `--no-telemetry` | Disable anonymous usage telemetry (also via `BIXAI_TELEMETRY=0` or `DO_NOT_TRACK=1`). |
+| `-V, --version` | Print the CLI version. |
+
+**Templates**
+
+| Template | What it ships |
+|---|---|
+| `default` | Single-agent starter — `mainAgent` plus calculator and weather tools. |
+| `handoffs` | Multi-agent starter — `triageAgent` routes to `math-specialist` and `weather-specialist` via the SDK's `handoffs` feature. |
+
+**Examples**
+
+```bash
+# Scripted, no prompts, npm, skip install
+npx @bixai/create-agent-sdk-starter my-app -y --pm npm --skip-install
+
+# Multi-agent handoffs template
+npx @bixai/create-agent-sdk-starter my-handoffs-app --template handoffs -y
+```
 
 - Fails early if the target directory already exists
-- Interactive mode selects package manager and optionally installs dependencies
+- Interactive mode (no flags, no project name) prompts for package manager and install
+- `-y` defaults to pnpm + install + git init
 - Automatically renames `gitignore` → `.gitignore` post-copy
+- Drops lockfiles that don't match the chosen package manager
+- Initializes a git repo with an initial commit unless `--no-git` is passed
 
 ---
 
 ## Generated structure
+
+**`default` template**
 
 ```
 my-agent-app/
@@ -98,7 +129,26 @@ my-agent-app/
     _components/
   agents/main.agent.ts
   runtime/agentRunner.ts
-  tools/
+  tools/calculator.tool.ts
+  tools/weather.tool.ts
+  PRODUCTION_GUIDE.md
+  package.json
+```
+
+**`handoffs` template**
+
+```
+my-agent-app/
+  app/
+    api/agent/route.ts
+    _components/
+  agents/triage.agent.ts      # orchestrator (no tools)
+  agents/math.agent.ts        # specialist (calculator)
+  agents/weather.agent.ts     # specialist (weather)
+  agents/main.agent.ts        # re-exports triage as mainAgent
+  runtime/agentRunner.ts
+  tools/calculator.tool.ts
+  tools/weather.tool.ts
   PRODUCTION_GUIDE.md
   package.json
 ```
