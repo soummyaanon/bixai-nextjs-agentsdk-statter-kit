@@ -2,6 +2,10 @@ import type { NextConfig } from "next";
 import withBundleAnalyzer from "@next/bundle-analyzer";
 
 const nextConfig: NextConfig = {
+  turbopack: {
+    root: __dirname,
+  },
+
   /**
    * Keep heavy server-only packages (OpenAI SDK, Agents SDK) out of the
    * Next.js server bundle. They are only ever imported inside Route Handlers

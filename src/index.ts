@@ -25,7 +25,7 @@ function trackEvent(event: string, properties: Record<string, string> = {}): voi
       distinct_id: distinctId,
       platform: process.platform,
       node_version: process.version,
-      cli_version: "1.2.1",
+      cli_version: "1.3.0",
       ...properties,
     },
     timestamp: new Date().toISOString(),
@@ -83,11 +83,11 @@ async function promptForProjectName(): Promise<string | null> {
 
 function parsePackageManager(value: string): PackageManager | null {
   const normalized = value.trim().toLowerCase();
-  if (!normalized || normalized === "1" || normalized === "npm") {
-    return "npm";
-  }
-  if (normalized === "2" || normalized === "pnpm") {
+  if (!normalized || normalized === "1" || normalized === "pnpm") {
     return "pnpm";
+  }
+  if (normalized === "2" || normalized === "npm") {
+    return "npm";
   }
   if (normalized === "3" || normalized === "yarn") {
     return "yarn";
@@ -110,7 +110,7 @@ async function promptForInteractiveOptions(): Promise<InteractiveOptions> {
     let packageManager: PackageManager | null = null;
     while (!packageManager) {
       const answer = await rl.question(
-        "Package manager (1:npm, 2:pnpm, 3:yarn, 4:bun) [1]: ",
+        "Package manager (1:pnpm, 2:npm, 3:yarn, 4:bun) [1]: ",
       );
       packageManager = parsePackageManager(answer);
       if (!packageManager) {
@@ -198,7 +198,7 @@ program
       return;
     }
 
-    let packageManager: PackageManager = "npm";
+    let packageManager: PackageManager = "pnpm";
     let installDependencies = false;
     if (isInteractiveRun) {
       const options = await promptForInteractiveOptions();
@@ -222,7 +222,19 @@ program
     }
 
     console.log(pc.green("Creating Agent SDK starter project..."));
-    await fs.copy(templateDir, targetDir);
+    // npm pack strips node_modules from the published tarball, but a local
+    // dev install may have these directories. Skip them defensively so the
+    // scaffold never inherits megabytes of stale state.
+    const SCAFFOLD_SKIP = new Set([
+      "node_modules",
+      ".next",
+      ".turbo",
+      ".vercel",
+      "tsconfig.tsbuildinfo",
+    ]);
+    await fs.copy(templateDir, targetDir, {
+      filter: (src: string) => !SCAFFOLD_SKIP.has(path.basename(src)),
+    });
 
     const gitignoreTemplatePath = path.join(targetDir, "gitignore");
     const gitignorePath = path.join(targetDir, ".gitignore");
@@ -232,6 +244,21 @@ program
     ) {
       await fs.move(gitignoreTemplatePath, gitignorePath);
     }
+
+    // Drop lockfiles that don't match the chosen package manager so the user
+    // doesn't carry a stale lock from another manager into their project.
+    const lockfileByManager: Record<PackageManager, string> = {
+      npm: "package-lock.json",
+      pnpm: "pnpm-lock.yaml",
+      yarn: "yarn.lock",
+      bun: "bun.lock",
+    };
+    const keep = lockfileByManager[packageManager];
+    await Promise.all(
+      Object.values(lockfileByManager)
+        .filter((name) => name !== keep)
+        .map((name) => fs.remove(path.join(targetDir, name))),
+    );
 
     if (installDependencies) {
       const installCommand = getInstallCommand(packageManager);

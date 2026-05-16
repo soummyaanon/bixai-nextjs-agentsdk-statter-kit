@@ -5,3 +5,10 @@
 npm-debug.log*
 .npm
 
+# Template build artifacts (the template ships as source; users build it themselves)
+templates/**/node_modules
+templates/**/.next
+templates/**/.turbo
+templates/**/.vercel
+templates/**/tsconfig.tsbuildinfo
+
