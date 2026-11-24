@@ -225,4 +225,4 @@ sudo chown -R "$(id -u)":"$(id -g)" ~/.npm
 
 ## Author
 
-**[Soumyaranjan Panda](https://github.com/soummyaanon)** — [@soummyaanon](https://github.com/soummyaanon)
+**[Soumyaranjan Panda](https://soumyapanda.dev)** — [@soummyaanon](https://github.com/soummyaanon)
